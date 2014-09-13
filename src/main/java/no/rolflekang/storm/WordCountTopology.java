@@ -20,16 +20,14 @@ package no.rolflekang.storm;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
-import backtype.storm.task.ShellBolt;
 import backtype.storm.topology.BasicOutputCollector;
-import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import storm.starter.spout.RandomSentenceSpout;
+import no.rolflekang.storm.spout.RandomSentenceSpout;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,21 +36,18 @@ import java.util.Map;
  * This topology demonstrates Storm's stream groupings and multilang capabilities.
  */
 public class WordCountTopology {
-  public static class SplitSentence extends ShellBolt implements IRichBolt {
+  public static class SplitSentence extends BaseBasicBolt {
+      @Override
+      public void execute(Tuple tuple, BasicOutputCollector collector) {
+          for(String word:tuple.getString(0).split(" ")) {
+              collector.emit(new Values(word));
+          }
+      }
 
-    public SplitSentence() {
-      super("python", "splitsentence.py");
-    }
-
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-      declarer.declare(new Fields("word"));
-    }
-
-    @Override
-    public Map<String, Object> getComponentConfiguration() {
-      return null;
-    }
+      @Override
+      public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
+          outputFieldsDeclarer.declare(new Fields("word"));
+      }
   }
 
   public static class WordCount extends BaseBasicBolt {
@@ -91,7 +86,7 @@ public class WordCountTopology {
     if (args != null && args.length > 0) {
       conf.setNumWorkers(3);
 
-      StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
+      StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
     }
     else {
       conf.setMaxTaskParallelism(3);
