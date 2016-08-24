@@ -1,10 +1,15 @@
 package no.rolflekang.storm;
 
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.StormSubmitter;
-import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
+
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.StormSubmitter;
+import org.apache.storm.topology.IBasicBolt;
+import org.apache.storm.topology.IRichBolt;
+import org.apache.storm.topology.IRichSpout;
+import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
+
 import no.rolflekang.storm.bolt.RedisOutputBolt;
 import no.rolflekang.storm.bolt.SplitBolt;
 import no.rolflekang.storm.bolt.WordCountBolt;
@@ -16,8 +21,10 @@ public class WordCountTopology {
 
     TopologyBuilder builder = new TopologyBuilder();
 
-    builder.setSpout("spout", new RandomSentenceSpout(), 5);
+    builder.setSpout("spout", (IRichSpout) new RandomSentenceSpout(), 5);
 
+   
+    
     builder.setBolt("split", new SplitBolt(), 8).shuffleGrouping("spout");
     builder.setBolt("count", new WordCountBolt(), 12).fieldsGrouping("split", new Fields("word"));
     builder.setBolt("redis", new RedisOutputBolt(), 12).fieldsGrouping("count", new Fields("word"));
@@ -31,12 +38,12 @@ public class WordCountTopology {
       StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
     }
     else {
-      conf.setMaxTaskParallelism(3);
+      conf.setMaxTaskParallelism(20);
 
       LocalCluster cluster = new LocalCluster();
       cluster.submitTopology("word-count", conf, builder.createTopology());
 
-      Thread.sleep(100000000);
+      Thread.sleep(60000);
 
       cluster.shutdown();
     }

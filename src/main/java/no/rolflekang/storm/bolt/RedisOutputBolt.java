@@ -1,13 +1,15 @@
 package no.rolflekang.storm.bolt;
 
-import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.BasicOutputCollector;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseBasicBolt;
-import backtype.storm.tuple.Tuple;
+
 import redis.clients.jedis.Jedis;
 
 import java.util.Map;
+
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.BasicOutputCollector;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseBasicBolt;
+import org.apache.storm.tuple.Tuple;
 
 public class RedisOutputBolt extends BaseBasicBolt {
     Jedis jedis;
@@ -15,14 +17,19 @@ public class RedisOutputBolt extends BaseBasicBolt {
     @Override
     public void prepare(Map stormConf, TopologyContext context) {
         super.prepare(stormConf, context);
-        jedis = new Jedis("localhost");
+//        jedis = new Jedis("192.168.56.2");
     }
 
-    @Override
+ 
     public void execute(Tuple tuple, BasicOutputCollector collector) {
-        jedis.publish("storm-wc", tuple.getString(0) + ": " + tuple.getInteger(1));
+//    	System.out.println(tuple.getString(0) + ": " + tuple.getInteger(1));
+//        jedis.publish("storm-wc", tuple.getString(0) + ": " + tuple.getInteger(1));
+    	
+//    	jedis.lpush("storm-wc", tuple.getString(0) + ": " + tuple.getInteger(1));
+    	
+    	   System.out.println(Thread.currentThread().getName() + ":" + tuple.getString(0));
     }
 
-    @Override
+ 
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) { }
 }
